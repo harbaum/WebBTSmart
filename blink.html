@@ -4,29 +4,49 @@
   </head>
   <body>
     <h1>WebBluetooth - BT Smart Controller - Blink</h1>
-    
-    <button onclick="onButtonClick()">Connect</button>
+
+    <p>
+      <div id="message"></div>
+      <button disabled="true" id="btn" onclick="onClick()">Connect</button>
+    </p>
     
     <script>
       function timerCallback(ch, state) {
+        message(state?"orange":"blue");
         ch.writeValue(new Uint8Array([state]));
         setTimeout(timerCallback.bind(this, ch, !state), 500);
       }
+
+      function message(m) {
+        msg = document.getElementById("message");
+        msg.innerHTML = m;
+      }
       
-      function onButtonClick() {
+      if(navigator.bluetooth === undefined)
+        message("<font color=\"red\">Your browser does not support Web Bluetooth. Please try e.g. Google Chrome and make sure Web Bluetooth is enabled.</font>");
+      else {
+        message("Web Bluetooth available. Please click 'Connect' ...");
+        document.getElementById("btn").disabled = false;
+      }
+      
+      function onClick() {
         navigator.bluetooth.requestDevice({
           filters: [{ name: 'BT Smart Controller' }],
           optionalServices: ['8ae87702-ad7d-11e6-80f5-76304dec7eb7']
         }).then(device => {
+          message("Device found. Connecting ...");
           return device.gatt.connect();
         }).then(server => {
+          message("Connected. Searching for primary service ...");
           return server.getPrimaryService('8ae87702-ad7d-11e6-80f5-76304dec7eb7');
         }).then(service => {
+          message("Primary service found. Requesting characteristic ...");
           return service.getCharacteristic('8ae87e32-ad7d-11e6-80f5-76304dec7eb7');
         }).then(characteristic => {
+          message("Characteristic found. Blink ...");
           setTimeout(timerCallback.bind(this, characteristic, 0), 500);
         }).catch(error => {
-          alert(error);
+          message("Error: " + error);
         });
       }
     </script>

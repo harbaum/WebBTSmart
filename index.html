@@ -3,13 +3,15 @@
     <title>WebBTSmart</title>
   </head>
   <body>
-    <h1>WebBTSmart</h1>
-
+    <h1>WebBTSmart</h1>  
+    
     Using the chrome web API to access the fischertechnik BT Smart
-    Controller
+    Controller. 
       
     This project shows how to use the chrome web API to access the
     fischertechnik BT Smart Controller.
+
+    <div id="message"></div>
     
     <h2>Demos</h2>
     <ul>
@@ -24,4 +26,18 @@
       <li><a href="https://developers.google.com/web/updates/2015/07/interact-with-ble-devices-on-the-web">Google developer info</a></li>
       </ul>
   </body>
+  
+  <script>
+    msg = document.getElementById("message");
+
+    if(navigator.bluetooth === undefined) {
+      msg.innerHTML = "<p><center><font color=\"red\">Your browser does not support Web Bluetooth. Please try e.g. Google Chrome and make sure Web Support is enabled.</font></center></p>";
+    } else {
+      msg.innerHTML = "<p><center><font color=\"green\">Your browser supports Web Bluetooth.</font></center></p>";
+    }
+    </script>
+
+    
+  </script>
+  
 </html>
