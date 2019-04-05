@@ -1,0 +1,35 @@
+<html>
+  <head>
+    <title>WebBluetooth - BT Smart Controller - Blink</title>
+  </head>
+  <body>
+    <h1>WebBluetooth - BT Smart Controller - Blink</h1>
+    
+    <button onclick="onButtonClick()">Connect</button>
+    
+    <script>
+      function timerCallback(ch, state) {
+        ch.writeValue(new Uint8Array([state]));
+        setTimeout(timerCallback.bind(this, ch, !state), 500);
+      }
+      
+      function onButtonClick() {
+        navigator.bluetooth.requestDevice({
+          filters: [{ name: 'BT Smart Controller' }],
+          optionalServices: ['8ae87702-ad7d-11e6-80f5-76304dec7eb7']
+        }).then(device => {
+          return device.gatt.connect();
+        }).then(server => {
+          return server.getPrimaryService('8ae87702-ad7d-11e6-80f5-76304dec7eb7');
+        }).then(service => {
+          return service.getCharacteristic('8ae87e32-ad7d-11e6-80f5-76304dec7eb7');
+        }).then(characteristic => {
+          setTimeout(timerCallback.bind(this, characteristic, 0), 500);
+        }).catch(error => {
+          alert(error);
+        });
+      }
+    </script>
+    
+  </body>
+</html>
