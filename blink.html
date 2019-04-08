@@ -12,7 +12,8 @@
     
     <script>
       function timerCallback(ch, state) {
-        message(state?"orange":"blue");
+        message(state?"<font color=\"orange\">orange</font>":
+                      "<font color=\"blue\">blue</font>");
         ch.writeValue(new Uint8Array([state]));
         setTimeout(timerCallback.bind(this, ch, !state), 500);
       }
@@ -23,7 +24,10 @@
       }
       
       if(navigator.bluetooth === undefined)
-        message("<font color=\"red\">Your browser does not support Web Bluetooth. Please try e.g. Google Chrome and make sure Web Bluetooth is enabled.</font>");
+        message("<font color=\"red\">"+
+	  "Your browser does not support Web Bluetooth."+
+	  "Please try e.g. Google Chrome and make sure "+
+	  "Web Bluetooth is enabled.</font>");
       else {
         message("Web Bluetooth available. Please click 'Connect' ...");
         document.getElementById("btn").disabled = false;
