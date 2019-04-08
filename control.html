@@ -1,0 +1,156 @@
+<html>
+  <head>
+    <title>WebBluetooth - BT Smart Controller - Control</title>
+  </head>
+  <body>
+    <h1>WebBluetooth - BT Smart Controller - Control</h1>
+
+    <!-- the user interface itself is written in html -->
+    <p>
+      <div>
+	<button disabled="true" id="btn" onclick="onClick()">Connect</button> <div style="display: inline" id="message"></div>
+	<hr>
+      </div>
+
+      <div>
+	<!-- led color selection -->
+	LED color: 
+	<input class="led" disabled="true" type="radio" name="color" id="blue"><label for="blue">Blue</label> 
+	<input class="led" disabled="true" type="radio" name="color" id="orange"><label for="orange">Orange</label> 
+      </div>
+      
+    </p>
+
+    <!-- the device is controlled from javascript -->
+    <script>
+      <!-- list of services/characteristics required -->
+      btsc = { "srvs": {
+        "leds":   { "uuid": "8ae87702-ad7d-11e6-80f5-76304dec7eb7",
+                    "chrs": {
+                      // write 1 byte: 00 = blue, 01 = orange 
+                      "ch": { "uuid": "8ae87e32-ad7d-11e6-80f5-76304dec7eb7" },
+                  } },
+        "output": { "uuid": "8ae883b4-ad7d-11e6-80f5-76304dec7eb7",
+                    "chrs": {
+                      // write 1 byte, valid range: –100..100
+                      "m1": { "uuid": "8ae8860c-ad7d-11e6-80f5-76304dec7eb7" },
+                      "m2": { "uuid": "8ae88b84-ad7d-11e6-80f5-76304dec7eb7" }
+                  } },
+        "config": { "uuid": "8ae88d6e-ad7d-11e6-80f5-76304dec7eb7",
+                    "chrs": {
+                      // write 1 byte: 0x0a = voltage, 0x0b = resistance 
+                      "i1": { "uuid": "8ae88efe-ad7d-11e6-80f5-76304dec7eb7" },
+                      "i2": { "uuid": "8ae89084-ad7d-11e6-80f5-76304dec7eb7" },
+                      "i3": { "uuid": "8ae89200-ad7d-11e6-80f5-76304dec7eb7" },
+                      "i4": { "uuid": "8ae89386-ad7d-11e6-80f5-76304dec7eb7" }
+                  } },
+        "input":  { "uuid": "8ae8952a-ad7d-11e6-80f5-76304dec7eb7",         
+                    "chrs": {
+                      // read 2 bytes: value in ohms or volt 
+                      "i1": { "uuid": "8ae89a2a-ad7d-11e6-80f5-76304dec7eb7" },
+                      "i2": { "uuid": "8ae89bec-ad7d-11e6-80f5-76304dec7eb7" },
+                      "i3": { "uuid": "8ae89dc2-ad7d-11e6-80f5-76304dec7eb7" },
+                      "i4": { "uuid": "8ae89f66-ad7d-11e6-80f5-76304dec7eb7" }
+                  } }
+         }
+      };
+      
+      function timerCallback(ch, state) {
+        message(state?"<font color=\"orange\">orange</font>":
+                      "<font color=\"blue\">blue</font>");
+        ch.writeValue(new Uint8Array([state]));
+        setTimeout(timerCallback.bind(this, ch, !state), 500);
+      }
+
+      function message(m) {
+        msg = document.getElementById("message");
+        msg.innerHTML = m;
+      }
+      
+      if(navigator.bluetooth === undefined)
+        message("<font color=\"red\">"+
+	  "Your browser does not support Web Bluetooth."+
+	  "Please try e.g. Google Chrome and make sure "+
+	  "Web Bluetooth is enabled.</font>");
+      else {
+        message("Web Bluetooth available. Please click 'Connect' ...");
+        document.getElementById("btn").disabled = false;
+      }
+
+      // write a byte to the given service/characteristic
+      function writeByte(srv, ch, val) {
+        btsc.srvs[srv].chrs[ch].handle.writeValue(new Uint8Array([val]));
+      }
+      
+      // -------------------- LED handling --------------------------
+      function onLedColorClicked(a) {
+        writeByte("leds", "ch", { "blue":0x00, "orange":0x01 }[a.srcElement.id]);
+      }
+      
+      // enable all led processing
+      function enableLed() {
+        leds = document.getElementsByClassName("led");
+        Array.prototype.forEach.call(leds, function(element) {
+          element.disabled = false;
+          element.addEventListener("click", onLedColorClicked);
+        });
+      }
+
+      // get the next characteristic request
+      function getNextRequest() {
+        // walk over all characteristics
+        for (var srv in btsc.srvs) {
+          if(btsc.srvs[srv].handle === undefined) {
+            btsc.server.getPrimaryService(btsc.srvs[srv].uuid).then(service => {
+              console.log("service:", service);
+              btsc.srvs[srv].handle = service;
+              getNextRequest();
+            });
+            return;
+          }
+      
+          for (var ch in btsc.srvs[srv].chrs) {
+            if(btsc.srvs[srv].chrs[ch].handle === undefined) {
+              btsc.srvs[srv].handle.getCharacteristic(
+                btsc.srvs[srv].chrs[ch].uuid).then(characteristic => {
+                console.log("characteristic:", characteristic);
+                btsc.srvs[srv].chrs[ch].handle = characteristic;
+                getNextRequest();
+              });
+              return;
+            }
+          }
+        }
+
+        message("Connection successful!");
+        // disable connect button as we are now connected
+        document.getElementById("btn").disabled = true;
+        // enable the GUI
+        enableLed();
+        return;
+      }
+      
+      function onClick() {
+        // build list of required services
+        optionalServices = []      
+        for (var srv in btsc.srvs)
+          optionalServices.push(btsc.srvs[srv].uuid);
+      
+        navigator.bluetooth.requestDevice({
+          filters: [{ name: 'BT Smart Controller' }],
+          optionalServices: optionalServices
+        }).then(device => {
+          message("Device found. Connecting ...");
+          return device.gatt.connect();
+        }).then(server => {
+          message("Connected! Analysing ...");
+          btsc.server = server;
+          getNextRequest();
+        }).catch(error => {
+          message("Error: " + error);
+        });
+      }
+    </script>
+    
+  </body>
+</html>
