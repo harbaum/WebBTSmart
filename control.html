@@ -9,23 +9,32 @@
     <p>
       <div>
 	<button disabled="true" id="btn" onclick="onClick()">Connect</button> <div style="display: inline" id="message"></div>
-	<hr>
       </div>
 
+      <hr>
+      
       <div>
 	<!-- led color selection -->
-	LED color: 
+	LED: 
 	<input class="led" disabled="true" type="radio" name="color" id="blue"><label for="blue">Blue</label> 
 	<input class="led" disabled="true" type="radio" name="color" id="orange"><label for="orange">Orange</label> 
       </div>
       
+      <hr>
+      
+      <div>
+	<!-- motor output control -->
+	Motors: 
+	M1: <input class="motor" disabled="true" type="range" min="-100" max="100" value="0" id="m1">
+	M2: <input class="motor" disabled="true" type="range" min="-100" max="100" value="0" id="m2">
+      </div>
     </p>
 
     <!-- the device is controlled from javascript -->
     <script>
       <!-- list of services/characteristics required -->
       btsc = { "srvs": {
-        "leds":   { "uuid": "8ae87702-ad7d-11e6-80f5-76304dec7eb7",
+        "led":    { "uuid": "8ae87702-ad7d-11e6-80f5-76304dec7eb7",
                     "chrs": {
                       // write 1 byte: 00 = blue, 01 = orange 
                       "ch": { "uuid": "8ae87e32-ad7d-11e6-80f5-76304dec7eb7" },
@@ -84,7 +93,7 @@
       
       // -------------------- LED handling --------------------------
       function onLedColorClicked(a) {
-        writeByte("leds", "ch", { "blue":0x00, "orange":0x01 }[a.srcElement.id]);
+        writeByte("led", "ch", { "blue":0x00, "orange":0x01 }[a.srcElement.id]);
       }
       
       // enable all led processing
@@ -93,6 +102,20 @@
         Array.prototype.forEach.call(leds, function(element) {
           element.disabled = false;
           element.addEventListener("click", onLedColorClicked);
+        });
+      }
+
+      // -------------------- motor handling --------------------------
+      function onMotorValueChanged(a) {
+        writeByte("output", a.srcElement.id, a.srcElement.value);
+      }
+      
+      // enable all led processing
+      function enableMotor() {
+        leds = document.getElementsByClassName("motor");
+        Array.prototype.forEach.call(leds, function(element) {
+          element.disabled = false;
+          element.addEventListener("input", onMotorValueChanged);
         });
       }
 
@@ -125,8 +148,11 @@
         message("Connection successful!");
         // disable connect button as we are now connected
         document.getElementById("btn").disabled = true;
+      
         // enable the GUI
         enableLed();
+        enableMotor();
+
         return;
       }
       
