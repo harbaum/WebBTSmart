@@ -36,6 +36,7 @@
 	<div style="display: inline">
 	  I1: 
 	  <input class="ival" disabled="true" type="text" id="i1v" value="-" size="5">
+	  <button class="iupd" disabled="true" id="i1vget">Update</button>
 	  <input class="imode" disabled="true" type="radio" name="i1m" id="i1r"><label for="i1r">ohms</label> 
 	  <input class="imode" disabled="true" type="radio" name="i1m" id="i1u"><label for="i1u">volt</label>
 	  <br>
@@ -43,6 +44,7 @@
 	<div style="display: inline">
 	  I2: 
 	  <input class="ival" disabled="true" type="text" id="i2v" value="-" size="5">
+	  <button class="iupd" disabled="true" id="i2vget">Update</button>
 	  <input class="imode" disabled="true" type="radio" name="i2m" id="i2r"><label for="i2r">ohms</label> 
 	  <input class="imode" disabled="true" type="radio" name="i2m" id="i2u"><label for="i2u">volt</label>
 	  <br>
@@ -50,6 +52,7 @@
 	<div style="display: inline">
 	  I3: 
 	  <input class="ival" disabled="true" type="text" id="i3v" value="-" size="5">
+	  <button class="iupd" disabled="true" id="i3vget">Update</button>
 	  <input class="imode" disabled="true" type="radio" name="i3m" id="i3r"><label for="i3r">ohms</label> 
 	  <input class="imode" disabled="true" type="radio" name="i3m" id="i3u"><label for="i3u">volt</label>
 	  <br>
@@ -57,6 +60,7 @@
 	<div style="display: inline">
 	  I4: 
 	  <input class="ival" disabled="true" type="text" id="i4v" value="-" size="5">
+	  <button class="iupd" disabled="true" id="i4vget">Update</button>
 	  <input class="imode" disabled="true" type="radio" name="i4m" id="i4r"><label for="i4r">ohms</label> 
 	  <input class="imode" disabled="true" type="radio" name="i4m" id="i4u"><label for="i4u">volt</label>
 	  <br>
@@ -163,18 +167,17 @@
         writeByte("imode", a.srcElement.name, { "u":0x0a, "r":0x0b }[a.srcElement.id[2]]);
       }
       
-      function getKeyByValue(object, value) {
-        console.log("keys:", Object.keys(object), value);
-        return Object.keys(object).find(key => object[key].uuid === value);
-      }
-
       function inputListener(a) {
-        // console.log("input listener", a.target.value.getUint16());
-
         // get our local name of this characteristic
         name = Object.keys(btsc.srvs["input"].chrs).find(key => btsc.srvs["input"].chrs[key].uuid === a.target.uuid);
       
-        document.getElementById(name).value = a.target.value.getUint16().toString();
+        document.getElementById(name).value = a.target.value.getUint16(0, true).toString();
+      }
+      
+      function onInputUpdateClicked(a) {
+        // this could be evaluated immediately. But it also triggers a notification and
+        // will finally cause inputListener to be called
+        btsc.srvs["input"].chrs[a.target.id.substring(0,3)].handle.readValue();
       }
       
       // enable all input processing
@@ -183,6 +186,11 @@
         Array.prototype.forEach.call(imodes, function(element) {
           element.disabled = false;
           element.addEventListener("click", onInputModeClicked);
+        });
+        iupd = document.getElementsByClassName("iupd");
+        Array.prototype.forEach.call(iupd, function(element) {
+          element.disabled = false;
+          element.addEventListener("click", onInputUpdateClicked);
         });
       }
 
@@ -203,14 +211,13 @@
             if(btsc.srvs[srv].chrs[ch].handle === undefined) {
               btsc.srvs[srv].handle.getCharacteristic(
                 btsc.srvs[srv].chrs[ch].uuid).then(characteristic => {
-                console.log("characteristic:", characteristic);
+                // console.log("characteristic:", characteristic);
                 btsc.srvs[srv].chrs[ch].handle = characteristic;
 
                 // check if we want to receive notifications
                 if("notify" in  btsc.srvs[srv].chrs[ch]) {
-                  console.log("wants to be notfied");
+                  // console.log("wants to be notfied");
                   characteristic.startNotifications().then(_ => {
-                    console.log('> Notifications started');
                     characteristic.addEventListener('characteristicvaluechanged',
                        btsc.srvs[srv].chrs[ch].notify) ;
                     getNextRequest();
