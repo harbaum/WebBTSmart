@@ -3,7 +3,7 @@
     <title>WebBluetooth - BT Smart Controller - Control</title>
   </head>
   <body>
-    <h1>WebBluetooth - BT Smart Controller - Control</h1>
+    <h2>WebBluetooth - BT Smart Controller - Control</h2>
 
     <!-- the user interface itself is written in html -->
     <p>
@@ -24,9 +24,44 @@
       
       <div>
 	<!-- motor output control -->
-	Motors: 
 	M1: <input class="motor" disabled="true" type="range" min="-100" max="100" value="0" id="m1">
+	<br>
 	M2: <input class="motor" disabled="true" type="range" min="-100" max="100" value="0" id="m2">
+      </div>
+      
+      <hr>
+      
+      <div>
+	<!-- input control -->
+	<div style="display: inline">
+	  I1: 
+	  <input class="ival" disabled="true" type="text" id="i1v" value="-" size="5">
+	  <input class="imode" disabled="true" type="radio" name="i1m" id="i1r"><label for="i1r">ohms</label> 
+	  <input class="imode" disabled="true" type="radio" name="i1m" id="i1u"><label for="i1u">volt</label>
+	  <br>
+	</div>
+	<div style="display: inline">
+	  I2: 
+	  <input class="ival" disabled="true" type="text" id="i2v" value="-" size="5">
+	  <input class="imode" disabled="true" type="radio" name="i2m" id="i2r"><label for="i2r">ohms</label> 
+	  <input class="imode" disabled="true" type="radio" name="i2m" id="i2u"><label for="i2u">volt</label>
+	  <br>
+	</div>
+	<div style="display: inline">
+	  I3: 
+	  <input class="ival" disabled="true" type="text" id="i3v" value="-" size="5">
+	  <input class="imode" disabled="true" type="radio" name="i3m" id="i3r"><label for="i3r">ohms</label> 
+	  <input class="imode" disabled="true" type="radio" name="i3m" id="i3u"><label for="i3u">volt</label>
+	  <br>
+	</div>
+	<div style="display: inline">
+	  I4: 
+	  <input class="ival" disabled="true" type="text" id="i4v" value="-" size="5">
+	  <input class="imode" disabled="true" type="radio" name="i4m" id="i4r"><label for="i4r">ohms</label> 
+	  <input class="imode" disabled="true" type="radio" name="i4m" id="i4u"><label for="i4u">volt</label>
+	  <br>
+	</div>
+	  
       </div>
     </p>
 
@@ -37,29 +72,33 @@
         "led":    { "uuid": "8ae87702-ad7d-11e6-80f5-76304dec7eb7",
                     "chrs": {
                       // write 1 byte: 00 = blue, 01 = orange 
-                      "ch": { "uuid": "8ae87e32-ad7d-11e6-80f5-76304dec7eb7" },
+                      "ch":  { "uuid": "8ae87e32-ad7d-11e6-80f5-76304dec7eb7" },
                   } },
         "output": { "uuid": "8ae883b4-ad7d-11e6-80f5-76304dec7eb7",
                     "chrs": {
                       // write 1 byte, valid range: –100..100
-                      "m1": { "uuid": "8ae8860c-ad7d-11e6-80f5-76304dec7eb7" },
-                      "m2": { "uuid": "8ae88b84-ad7d-11e6-80f5-76304dec7eb7" }
+                      "m1":  { "uuid": "8ae8860c-ad7d-11e6-80f5-76304dec7eb7" },
+                      "m2":  { "uuid": "8ae88b84-ad7d-11e6-80f5-76304dec7eb7" }
                   } },
-        "config": { "uuid": "8ae88d6e-ad7d-11e6-80f5-76304dec7eb7",
+        "imode":  { "uuid": "8ae88d6e-ad7d-11e6-80f5-76304dec7eb7",
                     "chrs": {
                       // write 1 byte: 0x0a = voltage, 0x0b = resistance 
-                      "i1": { "uuid": "8ae88efe-ad7d-11e6-80f5-76304dec7eb7" },
-                      "i2": { "uuid": "8ae89084-ad7d-11e6-80f5-76304dec7eb7" },
-                      "i3": { "uuid": "8ae89200-ad7d-11e6-80f5-76304dec7eb7" },
-                      "i4": { "uuid": "8ae89386-ad7d-11e6-80f5-76304dec7eb7" }
+                      "i1m": { "uuid": "8ae88efe-ad7d-11e6-80f5-76304dec7eb7" },
+                      "i2m": { "uuid": "8ae89084-ad7d-11e6-80f5-76304dec7eb7" },
+                      "i3m": { "uuid": "8ae89200-ad7d-11e6-80f5-76304dec7eb7" },
+                      "i4m": { "uuid": "8ae89386-ad7d-11e6-80f5-76304dec7eb7" }
                   } },
         "input":  { "uuid": "8ae8952a-ad7d-11e6-80f5-76304dec7eb7",         
                     "chrs": {
                       // read 2 bytes: value in ohms or volt 
-                      "i1": { "uuid": "8ae89a2a-ad7d-11e6-80f5-76304dec7eb7" },
-                      "i2": { "uuid": "8ae89bec-ad7d-11e6-80f5-76304dec7eb7" },
-                      "i3": { "uuid": "8ae89dc2-ad7d-11e6-80f5-76304dec7eb7" },
-                      "i4": { "uuid": "8ae89f66-ad7d-11e6-80f5-76304dec7eb7" }
+                      "i1v": { "uuid": "8ae89a2a-ad7d-11e6-80f5-76304dec7eb7",
+                               "notify": inputListener },
+                      "i2v": { "uuid": "8ae89bec-ad7d-11e6-80f5-76304dec7eb7",
+                               "notify": inputListener },
+                      "i3v": { "uuid": "8ae89dc2-ad7d-11e6-80f5-76304dec7eb7",
+                               "notify": inputListener },
+                      "i4v": { "uuid": "8ae89f66-ad7d-11e6-80f5-76304dec7eb7",
+                               "notify": inputListener }
                   } }
          }
       };
@@ -110,12 +149,40 @@
         writeByte("output", a.srcElement.id, a.srcElement.value);
       }
       
-      // enable all led processing
+      // enable all motor processing
       function enableMotor() {
-        leds = document.getElementsByClassName("motor");
-        Array.prototype.forEach.call(leds, function(element) {
+        motors = document.getElementsByClassName("motor");
+        Array.prototype.forEach.call(motors, function(element) {
           element.disabled = false;
           element.addEventListener("input", onMotorValueChanged);
+        });
+      }
+
+      // -------------------- input handling --------------------------
+      function onInputModeClicked(a) {
+        writeByte("imode", a.srcElement.name, { "u":0x0a, "r":0x0b }[a.srcElement.id[2]]);
+      }
+      
+      function getKeyByValue(object, value) {
+        console.log("keys:", Object.keys(object), value);
+        return Object.keys(object).find(key => object[key].uuid === value);
+      }
+
+      function inputListener(a) {
+        // console.log("input listener", a.target.value.getUint16());
+
+        // get our local name of this characteristic
+        name = Object.keys(btsc.srvs["input"].chrs).find(key => btsc.srvs["input"].chrs[key].uuid === a.target.uuid);
+      
+        document.getElementById(name).value = a.target.value.getUint16().toString();
+      }
+      
+      // enable all input processing
+      function enableInput() {
+        imodes = document.getElementsByClassName("imode");
+        Array.prototype.forEach.call(imodes, function(element) {
+          element.disabled = false;
+          element.addEventListener("click", onInputModeClicked);
         });
       }
 
@@ -125,7 +192,7 @@
         for (var srv in btsc.srvs) {
           if(btsc.srvs[srv].handle === undefined) {
             btsc.server.getPrimaryService(btsc.srvs[srv].uuid).then(service => {
-              console.log("service:", service);
+              // console.log("service:", service);
               btsc.srvs[srv].handle = service;
               getNextRequest();
             });
@@ -138,7 +205,18 @@
                 btsc.srvs[srv].chrs[ch].uuid).then(characteristic => {
                 console.log("characteristic:", characteristic);
                 btsc.srvs[srv].chrs[ch].handle = characteristic;
-                getNextRequest();
+
+                // check if we want to receive notifications
+                if("notify" in  btsc.srvs[srv].chrs[ch]) {
+                  console.log("wants to be notfied");
+                  characteristic.startNotifications().then(_ => {
+                    console.log('> Notifications started');
+                    characteristic.addEventListener('characteristicvaluechanged',
+                       btsc.srvs[srv].chrs[ch].notify) ;
+                    getNextRequest();
+                  });      
+                } else      
+                  getNextRequest();
               });
               return;
             }
@@ -152,6 +230,7 @@
         // enable the GUI
         enableLed();
         enableMotor();
+        enableInput();
 
         return;
       }
